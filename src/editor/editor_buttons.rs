@@ -5,6 +5,7 @@ use macroquad::prelude::is_key_released;
 use macroquad::prelude::is_mouse_button_pressed;
 use macroquad::prelude::measure_text;
 use macroquad::prelude::mouse_position;
+use macroquad::prelude::Color;
 use macroquad::prelude::KeyCode;
 use macroquad::prelude::MouseButton;
 use macroquad::prelude::TextDimensions;
@@ -13,10 +14,27 @@ use macroquad::prelude::DARKGRAY;
 use macroquad::prelude::GRAY;
 use macroquad::prelude::GREEN;
 use macroquad::prelude::LIGHTGRAY;
+use macroquad::prelude::ORANGE;
+use macroquad::prelude::PINK;
+use macroquad::prelude::PURPLE;
+use macroquad::prelude::RED;
+use macroquad::prelude::YELLOW;
 
 use super::EditorButton;
 use super::EditorElements;
 use super::EditorState;
+
+pub const COLORS: [Color; 9] = [
+    DARKGRAY.with_alpha(0.5),
+    GRAY.with_alpha(0.5),
+    GREEN.with_alpha(0.5),
+    PINK.with_alpha(0.5),
+    LIGHTGRAY.with_alpha(0.5),
+    ORANGE.with_alpha(0.5),
+    PURPLE.with_alpha(0.5),
+    RED.with_alpha(0.5),
+    YELLOW.with_alpha(0.5),
+];
 
 pub const BUTTON_SIZE: f32 = 21.0;
 
@@ -136,11 +154,11 @@ impl EditorButtons {
                         GRAY
                     }
                 }
-                _ => {
+                EditorButtons::Color => {
                     if is_position {
                         LIGHTGRAY
                     } else {
-                        GRAY
+                        state.element_color
                     }
                 }
             };
@@ -261,12 +279,12 @@ impl EditorButtons {
                         state.snap = !state.snap;
                     }
                     EditorButtons::Color => {
-                        // state.button = Some(EditorButtons::Grid);
-                        // if state.grid > 2 {
-                        //     state.grid = 0;
-                        // } else {
-                        //     state.grid += 1;
-                        // }
+                        if state.element_color_index >= COLORS.len() - 1 {
+                            state.element_color_index = 0;
+                        } else {
+                            state.element_color_index += 1;
+                        }
+                        state.element_color = COLORS[state.element_color_index];
                     }
                 }
             }

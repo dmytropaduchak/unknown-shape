@@ -22,7 +22,7 @@ impl Editor {
 
     pub async fn run(&mut self) {
         loop {
-            clear_background(self.color);
+            clear_background(self.color.with_alpha(0.5));
 
             EditorButtons::actions(&mut self.state);
             EditorButtons::draw(&mut self.state);

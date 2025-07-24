@@ -28,6 +28,7 @@ pub struct EditorState {
     pub element: EditorElements,
     pub element_thickness: f32,
     pub element_color: Color,
+    pub element_color_index: usize,
     // pub element_lines: bool,
     pub stack: Vec<EditorElement>,
     pub stack_undo: Vec<Vec<EditorElement>>,
@@ -69,6 +70,7 @@ impl EditorState {
             element: EditorElements::Line,
             element_thickness: 1.0,
             element_color: WHITE.with_alpha(0.5),
+            element_color_index: 0,
             // element_lines: false,
             current: None,
             // select
