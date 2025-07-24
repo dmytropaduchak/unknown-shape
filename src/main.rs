@@ -1,6 +1,3 @@
-mod config;
-use config::*;
-
 mod editor;
 use editor::*;
 

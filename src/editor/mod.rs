@@ -18,3 +18,6 @@ pub use editor_helps::*;
 
 mod editor_state;
 pub use editor_state::*;
+
+mod editor_config;
+pub use editor_config::*;
