@@ -55,9 +55,9 @@ pub enum EditorButtons {
     // Poly,
     // PolyLine,
     Circle,
-    // CircleLine,
+    CircleLine,
     Ellipse,
-    // EllipseLine,
+    EllipseLine,
     Rectangle,
     // RectangleLine,
     Triangle,
@@ -79,7 +79,9 @@ impl EditorButtons {
             // EditorButtons::Arc => "ARC",
             // EditorButtons::Poly => "POLY",
             EditorButtons::Circle => "CIRCLE",
+            EditorButtons::CircleLine => "CIRCLE LINE",
             EditorButtons::Ellipse => "ELLIPSE",
+            EditorButtons::EllipseLine => "ELLIPSE LINE",
             EditorButtons::Rectangle => "RECTANGLE",
             EditorButtons::Triangle => "TRIANGLE",
             EditorButtons::Hexagon => "HEXAGON",
@@ -141,7 +143,9 @@ impl EditorButtons {
                     }
                 }
                 EditorButtons::Circle
+                | EditorButtons::CircleLine
                 | EditorButtons::Ellipse
+                | EditorButtons::EllipseLine
                 | EditorButtons::Line
                 // | EditorButtons::Arc
                 // | EditorButtons::Poly
@@ -241,6 +245,10 @@ impl EditorButtons {
                         state.button = Some(EditorButtons::Ellipse);
                         state.element = EditorElements::Ellipse;
                     }
+                    EditorButtons::EllipseLine => {
+                        state.button = Some(EditorButtons::EllipseLine);
+                        state.element = EditorElements::EllipseLine;
+                    }
                     EditorButtons::Rectangle => {
                         state.button = Some(EditorButtons::Rectangle);
                         state.element = EditorElements::Rectangle;
@@ -260,12 +268,11 @@ impl EditorButtons {
                     EditorButtons::Circle => {
                         state.button = Some(EditorButtons::Circle);
                         state.element = EditorElements::Circle;
-                        // state.element_lines = !state.element_lines;
                     }
-                    // Some(EditorButtons::CircleLine) => {
-                    //     self.state.button = Some(EditorButtons::CircleLine);
-                    //     self.state.element_shape = EditorElements::CircleLine;
-                    // }
+                    EditorButtons::CircleLine => {
+                        state.button = Some(EditorButtons::CircleLine);
+                        state.element = EditorElements::CircleLine;
+                    }
                     EditorButtons::Grid => {
                         state.button = Some(EditorButtons::Grid);
                         if state.grid > 2 {

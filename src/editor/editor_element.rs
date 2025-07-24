@@ -7,6 +7,8 @@ use macroquad::prelude::draw_triangle;
 use macroquad::prelude::Color;
 use macroquad::prelude::DrawRectangleParams;
 use macroquad::prelude::Vec2;
+use macroquad::shapes::draw_circle_lines;
+use macroquad::shapes::draw_ellipse_lines;
 
 #[derive(Debug, Clone, Copy)]
 pub enum EditorValues {
@@ -19,7 +21,17 @@ pub enum EditorValues {
         center: Vec2,
         radius: f32,
     },
+    CircleLine {
+        center: Vec2,
+        radius: f32,
+    },
     Ellipse {
+        center: Vec2,
+        width: f32,
+        height: f32,
+        rotation: f32,
+    },
+    EllipseLine {
         center: Vec2,
         width: f32,
         height: f32,
@@ -96,6 +108,11 @@ impl EditorElement {
                 let y = center.y;
                 draw_circle(x, y, radius, color);
             }
+            EditorValues::CircleLine { center, radius } => {
+                let x = center.x;
+                let y = center.y;
+                draw_circle_lines(x, y, radius, 1.0, color);
+            }
             // EditorElements::Arc => {
             //     let radius = current.distance(position);
             //     let sides = (radius / 4.0).clamp(12.0, 64.0) as u8;
@@ -114,6 +131,16 @@ impl EditorElement {
                 let x = center.x;
                 let y = center.y;
                 draw_ellipse(x, y, width, height, rotation, color);
+            }
+            EditorValues::EllipseLine {
+                center,
+                width,
+                height,
+                rotation,
+            } => {
+                let x = center.x;
+                let y = center.y;
+                draw_ellipse_lines(x, y, width, height, rotation, 1.0, color);
             }
             EditorValues::Rectangle {
                 point,

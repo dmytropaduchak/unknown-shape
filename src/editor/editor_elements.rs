@@ -25,9 +25,9 @@ pub enum EditorElements {
     // Poly,
     // PolyLine,
     Circle,
-    // CircleLine,
+    CircleLine,
     Ellipse,
-    // EllipseLine,
+    EllipseLine,
     Rectangle,
     // RectangleLine,
     Triangle,
@@ -54,12 +54,29 @@ impl EditorElements {
                 let center = current;
                 EditorValues::Circle { center, radius }
             }
+            EditorElements::CircleLine => {
+                let radius = current.distance(position);
+                let center = current;
+                EditorValues::CircleLine { center, radius }
+            }
             EditorElements::Ellipse => {
                 let width = (position.x - current.x).abs();
                 let height = (position.y - current.y).abs();
                 let rotation = 0.0;
                 let center = current;
                 EditorValues::Ellipse {
+                    center,
+                    height,
+                    width,
+                    rotation,
+                }
+            }
+            EditorElements::EllipseLine => {
+                let width = (position.x - current.x).abs();
+                let height = (position.y - current.y).abs();
+                let rotation = 0.0;
+                let center = current;
+                EditorValues::EllipseLine {
                     center,
                     height,
                     width,
@@ -360,8 +377,9 @@ impl From<EditorElements> for EditorButtons {
             EditorElements::Line => EditorButtons::Line,
             // EditorElements::Poly => EditorButtons::Poly,
             EditorElements::Circle => EditorButtons::Circle,
-            // EditorShapes::CircleLine => EditorButtons::Circle,
+            EditorElements::CircleLine => EditorButtons::CircleLine,
             EditorElements::Ellipse => EditorButtons::Ellipse,
+            EditorElements::EllipseLine => EditorButtons::EllipseLine,
             EditorElements::Rectangle => EditorButtons::Rectangle,
             EditorElements::Triangle => EditorButtons::Triangle,
             EditorElements::Hexagon => EditorButtons::Hexagon,
