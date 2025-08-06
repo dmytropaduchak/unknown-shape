@@ -124,9 +124,19 @@ impl EditorState {
         let mut min_y = f32::MAX;
         let mut max_x = f32::MIN;
         let mut max_y = f32::MIN;
+
         for i in &self.stack {
             match i.value {
-                EditorValues::Circle { center, radius } => {
+                EditorValues::Line {
+                    point_a, point_b, ..
+                } => {
+                    min_x = min_x.min(point_a.x.min(point_b.x));
+                    min_y = min_y.min(point_a.y.min(point_b.y));
+                    max_x = max_x.max(point_a.x.max(point_b.x));
+                    max_y = max_y.max(point_a.y.max(point_b.y));
+                }
+                EditorValues::Circle { center, radius }
+                | EditorValues::CircleLine { center, radius } => {
                     min_x = min_x.min(center.x - radius);
                     min_y = min_y.min(center.y - radius);
                     max_x = max_x.max(center.x + radius);
@@ -138,8 +148,14 @@ impl EditorState {
                     max_x = max_x.max(center.x + radius);
                     max_y = max_y.max(center.y + radius);
                 }
-                EditorValues::Rectangle {
-                    point,
+                EditorValues::Ellipse {
+                    center,
+                    width,
+                    height,
+                    rotation,
+                }
+                | EditorValues::EllipseLine {
+                    center,
                     width,
                     height,
                     rotation,
@@ -161,7 +177,7 @@ impl EditorState {
                             corner.x * cos_r - corner.y * sin_r,
                             corner.x * sin_r + corner.y * cos_r,
                         );
-                        let world = point + rotated;
+                        let world = center + rotated;
 
                         min_x = min_x.min(world.x);
                         min_y = min_y.min(world.y);
@@ -169,7 +185,54 @@ impl EditorState {
                         max_y = max_y.max(world.y);
                     }
                 }
-                _ => {}
+                EditorValues::Rectangle {
+                    point,
+                    width,
+                    height,
+                    rotation,
+                } => {
+                    if rotation == 0.0 {
+                        // Simple case for non-rotated rectangles
+                        min_x = min_x.min(point.x);
+                        min_y = min_y.min(point.y);
+                        max_x = max_x.max(point.x + width);
+                        max_y = max_y.max(point.y + height);
+                    } else {
+                        // Handle rotated rectangles
+                        let cos_r = rotation.cos();
+                        let sin_r = rotation.sin();
+
+                        let corners = [
+                            Vec2::new(0.0, 0.0),
+                            Vec2::new(width, 0.0),
+                            Vec2::new(width, height),
+                            Vec2::new(0.0, height),
+                        ];
+
+                        for corner in corners.iter() {
+                            let rotated = Vec2::new(
+                                corner.x * cos_r - corner.y * sin_r,
+                                corner.x * sin_r + corner.y * cos_r,
+                            );
+                            let world = point + rotated;
+
+                            min_x = min_x.min(world.x);
+                            min_y = min_y.min(world.y);
+                            max_x = max_x.max(world.x);
+                            max_y = max_y.max(world.y);
+                        }
+                    }
+                }
+                EditorValues::Triangle {
+                    point_a,
+                    point_b,
+                    point_c,
+                } => {
+                    min_x = min_x.min(point_a.x.min(point_b.x.min(point_c.x)));
+                    min_y = min_y.min(point_a.y.min(point_b.y.min(point_c.y)));
+                    max_x = max_x.max(point_a.x.max(point_b.x.max(point_c.x)));
+                    max_y = max_y.max(point_a.y.max(point_b.y.max(point_c.y)));
+                }
             }
         }
         let width = max_x - min_x;
@@ -184,13 +247,71 @@ impl EditorState {
         for i in self.stack.iter() {
             let color = i.color;
             match i.value {
-                EditorValues::Circle { center, radius } => content.push_str(&format!(
-                    "   draw_circle(x + {:.1}, y + {:.1}, {:.1}, {:?});\n",
-                    center.x - min_x,
-                    center.y - min_y,
-                    radius,
-                    color,
-                )),
+                EditorValues::Line {
+                    point_a,
+                    point_b,
+                    thickness,
+                } => {
+                    content.push_str(&format!(
+                        "   draw_line(x + {:.1}, y + {:.1}, x + {:.1}, y + {:.1}, {:.1}, {:?});\n",
+                        point_a.x - min_x,
+                        point_a.y - min_y,
+                        point_b.x - min_x,
+                        point_b.y - min_y,
+                        thickness,
+                        color,
+                    ));
+                }
+                EditorValues::Circle { center, radius } => {
+                    content.push_str(&format!(
+                        "   draw_circle(x + {:.1}, y + {:.1}, {:.1}, {:?});\n",
+                        center.x - min_x,
+                        center.y - min_y,
+                        radius,
+                        color,
+                    ));
+                }
+                EditorValues::CircleLine { center, radius } => {
+                    content.push_str(&format!(
+                        "   draw_circle_lines(x + {:.1}, y + {:.1}, {:.1}, 1.0, {:?});\n",
+                        center.x - min_x,
+                        center.y - min_y,
+                        radius,
+                        color,
+                    ));
+                }
+                EditorValues::Ellipse {
+                    center,
+                    width,
+                    height,
+                    rotation,
+                } => {
+                    content.push_str(&format!(
+                        "   draw_ellipse(x + {:.1}, y + {:.1}, {:.1}, {:.1}, {:.1}, {:?});\n",
+                        center.x - min_x,
+                        center.y - min_y,
+                        width,
+                        height,
+                        rotation,
+                        color,
+                    ));
+                }
+                EditorValues::EllipseLine {
+                    center,
+                    width,
+                    height,
+                    rotation,
+                } => {
+                    content.push_str(&format!(
+                        "   draw_ellipse_lines(x + {:.1}, y + {:.1}, {:.1}, {:.1}, {:.1}, 1.0, {:?});\n",
+                        center.x - min_x,
+                        center.y - min_y,
+                        width,
+                        height,
+                        rotation,
+                        color,
+                    ));
+                }
                 EditorValues::Rectangle {
                     width,
                     height,
@@ -211,6 +332,22 @@ impl EditorState {
                         params,
                     ));
                 }
+                EditorValues::Triangle {
+                    point_a,
+                    point_b,
+                    point_c,
+                } => {
+                    content.push_str(&format!(
+                        "   draw_triangle(Vec2::new(x + {:.1}, y + {:.1}), Vec2::new(x + {:.1}, y + {:.1}), Vec2::new(x + {:.1}, y + {:.1}), {:?});\n",
+                        point_a.x - min_x,
+                        point_a.y - min_y,
+                        point_b.x - min_x,
+                        point_b.y - min_y,
+                        point_c.x - min_x,
+                        point_c.y - min_y,
+                        color,
+                    ));
+                }
                 EditorValues::Hexagon {
                     center,
                     radius,
@@ -226,7 +363,6 @@ impl EditorState {
                         color,
                     ));
                 }
-                _ => content.push_str(""),
             }
         }
         content.push_str("}\n");
